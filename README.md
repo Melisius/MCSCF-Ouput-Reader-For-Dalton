@@ -1,1 +1,1 @@
-# MCSCF-Ouput-Reader-For-Dalton
+# MCSCF-Output-Reader-For-Dalton
