@@ -16,6 +16,8 @@ class Output_Reader():
                 else:
                     default_type = "singlet"
                 symmetry = line.split()[5]
+                if ")" in symmetry:
+                    symmetry = symmetry.split(")")[0]
                 self.dict_excitations[symmetry] = {"excitations":[],
                                                    "type":[],
                                                    "warnings":[]}
