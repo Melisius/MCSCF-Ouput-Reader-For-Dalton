@@ -20,6 +20,7 @@ class Output_Reader():
                     symmetry = symmetry.split(")")[0]
                 self.dict_excitations[symmetry] = {"excitations":[],
                                                    "type":[],
+                                                   "classification":[],
                                                    "warnings":[]}
                 excitation_found_check = 1
             elif "WARNING Complex eigenvalue" in line:
@@ -35,15 +36,21 @@ class Output_Reader():
             elif "-----  -----" in line and excitation_found_check == 1:
                 found_rs_index_check = 1
                 total_rs = 0
+                # sym_x --> sym_y
+                rs_symmetry = np.zeros((8,8))
             elif found_rs_index_check == 1 and line == "\n":
                 found_rs_index_check = 0
             elif found_rs_index_check == 1:
                 total_rs += abs(float(line.split()[3]))
+                r_idx = int(line.split()[1].split("(")[1].split(")")[0])
+                s_idx = int(line.split()[2].split("(")[1].split(")")[0])
+                rs_symmetry[r_idx,s_idx] += float(line.split()[5])**2
             elif excitation_found_check == 1 and "The numbers in paren" in line:
                 if total_rs < 10**-6 and default_type == "triplet":
                     self.dict_excitations[symmetry]["type"].append("singlet")
                 else:
                     self.dict_excitations[symmetry]["type"].append(default_type)
+                self.dict_exictations[symmetry]["classification"].append(rs_symmetry)
                 excitation_found_check = 0
                 found_rs_index_check = 0
 
