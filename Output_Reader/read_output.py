@@ -46,7 +46,97 @@ class Output_Reader():
                     self.dict_excitations[symmetry]["type"].append(default_type)
                 excitation_found_check = 0
                 found_rs_index_check = 0
-                    
+
+
     def get_natural_occupations(self):
         None
+    
+
+    def get_srmp2_contribution(self):
+        self.mp2_energy = 0.0
+        self.hf_energy = 0.0
+        for line in self.__load_file:
+            if "@   Short-range Hartree-Fock total energy        :" in line:
+                self.hf_energy = float(line.split(":")[1])
+            elif "@   + MP2 contribution from long-range integrals :" in line:
+                self.mp2_energy = float(line.split(":")[1])
+                break
+            elif "Final results from SIRIUS" in line:
+                break
+    
+
+    def get_mp2_contribution(self):
+        self.mp2_energy = 0.0
+        self.hf_energy = 0.0
+        for line in self.__load_file:
+            if "@   Hartree-Fock total energy   :" in line:
+                self.hf_energy = float(line.split(":")[1])
+            elif "@   + MP2 contribution          :" in line:
+                self.mp2_energy = float(line.split(":")[1])
+                break
+            elif "Final results from SIRIUS" in line:
+                break
+    
+
+    def get_hfsrdft_contribution(self):
+        self.hf_energy = 0.0
+        self.srExc_energy = 0.0
+        self.srEJ_energy = 0.0
+        for line in self.__load_file:
+            if "Final HF-SRDFT energy:" in line:
+                self.hf_energy = float(line.split(":")[1])
+            elif "Ex-sr + Ec-sr" in line:
+                self.srExc_energy = float(line.split("Ec-sr")[1])
+            elif "+ EJsr = sr" in line:
+                self.srEJ_energy = float(line.split("energy")[1])
+            elif "!!!Final results from SIRIUS" in line:
+                break
             
+
+    def get_dft_contribution(self):
+        self.dft_energy = 0.0
+        for line in self.__load_file:
+            if "@    Final DFT energy:" in line:
+                self.dft_energy = float(line.split(":")[1])
+                break
+
+
+    def get_spin_spin_coupling_constants(self):
+        self.sscc = {}
+        coupling_found = False
+        for line in self.__load_file:
+            if "Indirect spin-spin coupling between" in line:
+                if coupling_found == True:
+                    self.sscc[atom1+"//"+atom2] = values[:couplings_counter,:]
+                atom1 = line.split("between")[1].split("and")[0].replace(" ","").replace("_","  _")
+                atom2 = line.split("between")[1].split("and")[1].replace(" ","").replace("_","  _").replace(":\n","")
+                values = np.zeros((10,11))
+                couplings_counter = 0
+                coupling_found = True
+            elif coupling_found == True:
+                if "Mass number atom 1:" in line:
+                    values[couplings_counter,0] = float(line.split("Abundance:")[1].split("%")[0])
+                if "Mass number atom 2:" in line:
+                    values[couplings_counter,1] = float(line.split("Abundance:")[1].split("%")[0])
+                elif "Isotropic coupling" in line:
+                    values[couplings_counter,2] = float(line.split(":")[1].split("H")[0])
+                elif "Anisotropic coupling" in line:
+                    values[couplings_counter,3] = float(line.split(":")[1].split("H")[0])
+                elif "Asymmetry" in line:
+                    values[couplings_counter,4] = float(line.split(":")[1])
+                elif "S parameter" in line:
+                    values[couplings_counter,5] = float(line.split(":")[1].split("H")[0])
+                elif "A parameter" in line:
+                    values[couplings_counter,6] = float(line.split(":")[1].split("H")[0])
+                elif "Isotropic DSO contribution" in line:
+                    values[couplings_counter,7] = float(line.split(":")[1].split("H")[0])
+                elif "Isotropic PSO contribution" in line:
+                    values[couplings_counter,8] = float(line.split(":")[1].split("H")[0])
+                elif "Isotropic SD contribution" in line:
+                    values[couplings_counter,9] = float(line.split(":")[1].split("H")[0])
+                elif "Isotropic FC contribution" in line:
+                    values[couplings_counter,10] = float(line.split(":")[1].split("H")[0])
+                    couplings_counter += 1
+            if "End of Static Property Section" in line and coupling_found == True:
+                self.sscc[atom1+"//"+atom2] = values[:couplings_counter,:]
+                break
