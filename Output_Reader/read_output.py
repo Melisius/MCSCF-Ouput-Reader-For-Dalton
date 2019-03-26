@@ -9,8 +9,23 @@ class Output_Reader():
         self.dict_excitations = {}
         found_rs_index_check = 0
         excitation_found_check = 0
+        excitation_found_check = 0
+        cas_found_check = 0
+        ci_found_check = 0
+        alpha = "None"
+        beta = "None"
         for line in self.__load_file:
-            if "triplet =" and "Operator symmetry" in line:
+            if ".CAS" in line:
+                cas_found_check = 1
+            elif cas_found_check == 1:
+                cas = line.split()
+                cas = [int(i) for i in cas]
+                cas_idx = []
+                for j in range(0, len(cas)):
+                    for i in range(cas[j]):
+                        cas_idx.append(j+1)
+                cas_found_check = 0
+            elif "triplet =" and "Operator symmetry" in line:
                 if "triplet =   T" in line:
                     default_type = "triplet"
                 else:
@@ -20,7 +35,8 @@ class Output_Reader():
                     symmetry = symmetry.split(")")[0]
                 self.dict_excitations[symmetry] = {"excitations":[],
                                                    "type":[],
-                                                   "classification":[],
+                                                   "orb_classification":[],
+                                                   "ci_classification":[],
                                                    "warnings":[]}
                 excitation_found_check = 1
             elif "WARNING Complex eigenvalue" in line:
@@ -37,7 +53,7 @@ class Output_Reader():
                 found_rs_index_check = 1
                 total_rs = 0
                 # sym_x --> sym_y
-                rs_symmetry = np.zeros((8,8))
+                rs_symmetry = np.zeros((9,9))
             elif found_rs_index_check == 1 and line == "\n":
                 found_rs_index_check = 0
             elif found_rs_index_check == 1:
@@ -46,13 +62,65 @@ class Output_Reader():
                 s_idx = int(line.split()[2].split("(")[1].split(")")[0])
                 rs_symmetry[r_idx,s_idx] += float(line.split()[5])**2
             elif excitation_found_check == 1 and "The numbers in paren" in line:
+                rs_symmetry = rs_symmetry**0.5
                 if total_rs < 10**-6 and default_type == "triplet":
                     self.dict_excitations[symmetry]["type"].append("singlet")
                 else:
                     self.dict_excitations[symmetry]["type"].append(default_type)
-                self.dict_exictations[symmetry]["classification"].append(rs_symmetry)
+                if np.sum(rs_symmetry) != 0.0:
+                    temp = []
+                    rs_symmetry_tmp = np.copy(rs_symmetry)
+                    while np.sum(rs_symmetry_tmp) > 0.0:
+                        temp.append([np.where(rs_symmetry_tmp==rs_symmetry_tmp.max())[0][0],np.where(rs_symmetry_tmp==rs_symmetry_tmp.max())[1][0], np.max(rs_symmetry_tmp)])
+                        rs_symmetry_tmp[np.where(rs_symmetry_tmp==rs_symmetry_tmp.max())[0][0],np.where(rs_symmetry_tmp==rs_symmetry_tmp.max())[1][0]] = 0.0
+                    self.dict_excitations[symmetry]["orb_classification"].append(temp)
+                else:
+                    self.dict_excitations[symmetry]["orb_classification"].append([0,0,0.0])
                 excitation_found_check = 0
                 found_rs_index_check = 0
+                ci_found_check = 1 
+                ci_coeff = np.zeros((9,9))
+            elif ci_found_check == 1 and "Coefficient of determinant" in line:
+                coeff = float(line.split()[5])
+            elif ci_found_check == 1 and "alpha-string" in line:
+                alpha = line.split()[1:]
+            elif ci_found_check == 1 and "beta-string" in line:
+                beta = line.split()[1:]
+            elif beta != "None" and alpha != "None":
+                alpha = [int(i) for i in alpha]
+                beta = [int(i) for i in beta]
+                det = []
+                for i in alpha:
+                    if i not in beta:
+                        det.append(i)
+                for i in beta:
+                    if i not in alpha:
+                        det.append(-i)
+                det = [i*np.sign(coeff) for i in det]
+                det.sort()
+                det = [int(abs(i)) for i in det]
+                idx1 = abs(cas_idx[int(det[0])-1])
+                idx2 = abs(cas_idx[int(det[1])-1])
+                if len(det) == 2:
+                    ci_coeff[idx1,idx2] += coeff**2
+                alpha = "None"
+                beta = "None"
+            elif "Magnitude of CI coefficients" in line and ci_found_check == 1:
+                ci_coeff = ci_coeff**0.5
+                if np.sum(ci_coeff) != 0.0:
+                    temp = []
+                    ci_coeff_tmp = np.copy(ci_coeff)
+                    while np.sum(ci_coeff_tmp) > 0.0:
+                        temp.append([np.where(ci_coeff_tmp==ci_coeff_tmp.max())[0][0],np.where(ci_coeff_tmp==ci_coeff_tmp.max())[1][0], np.max(ci_coeff_tmp)])
+                        ci_coeff_tmp[np.where(ci_coeff_tmp==ci_coeff_tmp.max())[0][0],np.where(ci_coeff_tmp==ci_coeff_tmp.max())[1][0]] = 0.0
+                    self.dict_excitations[symmetry]["ci_classification"].append(temp)
+                else:
+                    self.dict_excitations[symmetry]["ci_classification"].append([0,0,0.0])
+                ci_found_check = 0
+            elif ">> NO ELEMENTS <<" in line and ci_found_check == 1 :
+                self.dict_excitations[symmetry]["ci_classification"].append([0,0,0.0])
+                ci_found_check = 0
+                
 
 
     def get_natural_occupations(self):
