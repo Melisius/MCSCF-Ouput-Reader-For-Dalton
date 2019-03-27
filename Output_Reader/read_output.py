@@ -75,7 +75,7 @@ class Output_Reader():
                         rs_symmetry_tmp[np.where(rs_symmetry_tmp==rs_symmetry_tmp.max())[0][0],np.where(rs_symmetry_tmp==rs_symmetry_tmp.max())[1][0]] = 0.0
                     self.dict_excitations[symmetry]["orb_classification"].append(temp)
                 else:
-                    self.dict_excitations[symmetry]["orb_classification"].append([0,0,0.0])
+                    self.dict_excitations[symmetry]["orb_classification"].append([[0,0,0.0]])
                 excitation_found_check = 0
                 found_rs_index_check = 0
                 ci_found_check = 1 
@@ -98,10 +98,10 @@ class Output_Reader():
                         det.append(-i)
                 det = [i*np.sign(coeff) for i in det]
                 det.sort()
-                det = [int(abs(i)) for i in det]
-                idx1 = abs(cas_idx[int(det[0])-1])
-                idx2 = abs(cas_idx[int(det[1])-1])
                 if len(det) == 2:
+                    det = [int(abs(i)) for i in det]
+                    idx1 = abs(cas_idx[int(det[0])-1])
+                    idx2 = abs(cas_idx[int(det[1])-1])
                     ci_coeff[idx1,idx2] += coeff**2
                 alpha = "None"
                 beta = "None"
@@ -115,10 +115,10 @@ class Output_Reader():
                         ci_coeff_tmp[np.where(ci_coeff_tmp==ci_coeff_tmp.max())[0][0],np.where(ci_coeff_tmp==ci_coeff_tmp.max())[1][0]] = 0.0
                     self.dict_excitations[symmetry]["ci_classification"].append(temp)
                 else:
-                    self.dict_excitations[symmetry]["ci_classification"].append([0,0,0.0])
+                    self.dict_excitations[symmetry]["ci_classification"].append([[0,0,0.0]])
                 ci_found_check = 0
             elif ">> NO ELEMENTS <<" in line and ci_found_check == 1 :
-                self.dict_excitations[symmetry]["ci_classification"].append([0,0,0.0])
+                self.dict_excitations[symmetry]["ci_classification"].append([[0,0,0.0]])
                 ci_found_check = 0
                 
 
