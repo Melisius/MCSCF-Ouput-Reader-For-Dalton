@@ -12,6 +12,8 @@ class Output_Reader():
         excitation_found_check = 0
         cas_found_check = 0
         ci_found_check = 0
+        ci_groundstate_check = 0
+        groundstate_ci = [0]
         alpha = "None"
         beta = "None"
         for line in self.__load_file:
@@ -25,6 +27,12 @@ class Output_Reader():
                     for i in range(cas[j]):
                         cas_idx.append(j+1)
                 cas_found_check = 0
+            elif "Printout of coefficients in interval" and ci_groundstate_check == 0:
+                ci_groundstate_check = 1
+            elif ci_groundstate_check == 1 and "alpha-string" in line:
+                groundstate_ci = line.split()[1:]
+                groundstate_ci = [int(i) for i in groundstate_ci]
+                ci_groundstate_check = 2
             elif "triplet =" and "Operator symmetry" in line:
                 if "triplet =   T" in line:
                     default_type = "triplet"
@@ -91,12 +99,17 @@ class Output_Reader():
                 beta = [int(i) for i in beta]
                 det = []
                 for i in alpha:
-                    if i not in beta:
+                    if i not in groundstate_ci:
                         det.append(i)
-                for i in beta:
+                for i in groundstate_ci:
                     if i not in alpha:
                         det.append(-i)
-                det = [i*np.sign(coeff) for i in det]
+                for i in beta:
+                    if i not in groundstate_ci:
+                        det.append(i)
+                for i in groundstate_ci:
+                    if i not in beta:
+                        det.append(-i)
                 det.sort()
                 if len(det) == 2:
                     det = [int(abs(i)) for i in det]
