@@ -140,7 +140,7 @@ class Output_Reader():
         None
     
 
-    def get_srmp2_contribution(self):
+    def get_mp2srdft_contribution(self):
         self.mp2_energy = 0.0
         self.hf_energy = 0.0
         for line in self.__load_file:
@@ -148,6 +148,32 @@ class Output_Reader():
                 self.hf_energy = float(line.split(":")[1])
             elif "@   + MP2 contribution from long-range integrals :" in line:
                 self.mp2_energy = float(line.split(":")[1])
+                break
+            elif "Final results from SIRIUS" in line:
+                break
+    
+                
+    def get_mcsrdft_contribution(self):
+        self.mp2_energy = 0.0
+        self.hf_energy = 0.0
+        for line in self.__load_file:
+            if "@   Short-range Hartree-Fock total energy        :" in line:
+                self.hf_energy = float(line.split(":")[1])
+            elif "@    Final MC-SRDFT energy:" in line:
+                self.mcscf_energy = float(line.split(":")[1])
+                break
+            elif "Final results from SIRIUS" in line:
+                break
+                
+                
+    def get_mcscf_contribution(self):
+        self.mp2_energy = 0.0
+        self.hf_energy = 0.0
+        for line in self.__load_file:
+            if "@   Hartree-Fock total energy   :" in line:
+                self.hf_energy = float(line.split(":")[1])
+            elif "Final MCSCF energy:" in line:
+                self.mcscf_energy = float(line.split(":")[1])
                 break
             elif "Final results from SIRIUS" in line:
                 break
