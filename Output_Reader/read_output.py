@@ -229,23 +229,50 @@ class Output_Reader():
                 if "Mass number atom 2:" in line:
                     values[couplings_counter,1] = float(line.split("Abundance:")[1].split("%")[0])
                 elif "Isotropic coupling" in line:
-                    values[couplings_counter,2] = float(line.split(":")[1].split("H")[0])
+                    try:
+                        values[couplings_counter,2] = float(line.split(":")[1].split("H")[0])
+                    except:
+                        values[couplings_counter,2] = False
                 elif "Anisotropic coupling" in line:
-                    values[couplings_counter,3] = float(line.split(":")[1].split("H")[0])
+                    try:
+                        values[couplings_counter,3] = float(line.split(":")[1].split("H")[0])
+                    except:
+                        values[couplings_counter,3] = False
                 elif "Asymmetry" in line:
-                    values[couplings_counter,4] = float(line.split(":")[1])
+                    try:
+                        values[couplings_counter,4] = float(line.split(":")[1])
+                    except:
+                        values[couplings_counter,4] = False
                 elif "S parameter" in line:
-                    values[couplings_counter,5] = float(line.split(":")[1].split("H")[0])
+                    try:
+                        values[couplings_counter,5] = float(line.split(":")[1].split("H")[0])
+                    except:
+                        values[couplings_counter,5] = False
                 elif "A parameter" in line:
-                    values[couplings_counter,6] = float(line.split(":")[1].split("H")[0])
+                    try:
+                        values[couplings_counter,6] = float(line.split(":")[1].split("H")[0])
+                    except:
+                        values[couplings_counter,6] = False
                 elif "Isotropic DSO contribution" in line:
-                    values[couplings_counter,7] = float(line.split(":")[1].split("H")[0])
+                    try:
+                        values[couplings_counter,7] = float(line.split(":")[1].split("H")[0])
+                    except:
+                        values[couplings_counter,7] = False
                 elif "Isotropic PSO contribution" in line:
-                    values[couplings_counter,8] = float(line.split(":")[1].split("H")[0])
+                    try:
+                        values[couplings_counter,8] = float(line.split(":")[1].split("H")[0])
+                    except:
+                        values[couplings_counter,8] = False
                 elif "Isotropic SD contribution" in line:
-                    values[couplings_counter,9] = float(line.split(":")[1].split("H")[0])
+                    try:
+                        values[couplings_counter,9] = float(line.split(":")[1].split("H")[0])
+                    except:
+                        values[couplings_counter,9] = False
                 elif "Isotropic FC contribution" in line:
-                    values[couplings_counter,10] = float(line.split(":")[1].split("H")[0])
+                    try:
+                        values[couplings_counter,10] = float(line.split(":")[1].split("H")[0])
+                    except:
+                        values[couplings_counter,10] = False
                     couplings_counter += 1
             if "End of Static Property Section" in line and coupling_found == True:
                 self.sscc[atom1+"//"+atom2] = values[:couplings_counter,:]
