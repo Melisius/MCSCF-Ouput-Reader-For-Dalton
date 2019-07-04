@@ -162,8 +162,6 @@ class Output_Reader():
             elif "@    Final MC-SRDFT energy:" in line:
                 self.mcscf_energy = float(line.split(":")[1])
                 break
-            elif "Final results from SIRIUS" in line:
-                break
                 
                 
     def get_mcscf_contribution(self):
@@ -174,8 +172,6 @@ class Output_Reader():
                 self.hf_energy = float(line.split(":")[1])
             elif "Final MCSCF energy:" in line:
                 self.mcscf_energy = float(line.split(":")[1])
-                break
-            elif "Final results from SIRIUS" in line:
                 break
     
 
@@ -222,8 +218,8 @@ class Output_Reader():
             if "Indirect spin-spin coupling between" in line:
                 if coupling_found == True:
                     self.sscc[atom1+"//"+atom2] = values[:couplings_counter,:]
-                atom1 = line.split("between")[1].split("and")[0].replace(" ","").replace("_","  _")
-                atom2 = line.split("between")[1].split("and")[1].replace(" ","").replace("_","  _").replace(":\n","")
+                atom1 = line.split("between")[1].split("and")[0].replace(" ","")
+                atom2 = line.split("between")[1].split("and")[1].replace(" ","").replace(":\n","")
                 values = np.zeros((10,11))
                 couplings_counter = 0
                 coupling_found = True
